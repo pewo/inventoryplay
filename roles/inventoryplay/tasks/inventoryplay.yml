@@ -1,0 +1,21 @@
+---
+
+- name: locate inventory.pl
+  stat: 
+    path: "{{ role_path }}/files/inventory.pl"
+  register: p
+  delegate_to: localhost
+  run_once: true
+
+- debug: var=p
+
+- name: execute inventory.pl
+  command: "{{ p.stat.path }} --directory={{ tmpdir.path }} --inventory={{ inventory_file }}"
+  register: exec
+  delegate_to: localhost
+  run_once: true
+  when: ( p.stat.path is defined and p.stat.path ) and
+        ( p.stat.isreg is defined and p.stat.isreg ) and
+        ( p.stat.xusr is defined and p.stat.xusr )
+
+- debug: var=exec

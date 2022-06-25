@@ -1,0 +1,9 @@
+---
+- hosts: all
+  gather_facts: false
+
+  roles:
+
+  - role: inventoryplay
+    vars:
+            - variable: "{{ install_playbooks }}"

@@ -1,0 +1,50 @@
+---
+
+- name: check if destination directory is defined
+  assert:
+    that:
+      - tmpdir is defined
+    quiet: true
+  run_once: true
+  delegate_to: localhost
+
+- name: check id destination directory is present
+  stat:
+    path: "{{ tmpdir.path }}"
+  register: p
+  run_once: true
+  delegate_to: localhost
+
+- name: check if destination directory is a directory
+  assert:
+    that:
+      - p.stat.isdir is defined
+      - p.stat.isdir == true
+    fail_msg: "Directory {{ tmpdir.path }} is missing"
+    quiet: true
+  run_once: true
+  delegate_to: localhost
+
+- name: check if variable is defined
+  assert:
+    that:
+      - variable is defined
+    fail_msg: "variable is not defined, try -e {% raw %} 'variable={{ host_variable }}' {% endraw %}"
+    quiet: true
+
+- name: remove old files
+  file: 
+    path: "{{ item }}"
+    state: absent
+  with_fileglob:
+     - "{{ tmpdir.path }}/*"
+  run_once: true
+  delegate_to: localhost
+
+- name: "save data to {{ tmpdir.path }}"
+  copy:
+    content: "{{ variable | trim | replace(' ', '\n') }}\n"
+    dest: "{{ tmpdir.path }}/{{ inventory_hostname }}"
+  register: save
+  delegate_to: localhost
+  when: variable is defined and p.stat.isdir is defined and p.stat.isdir

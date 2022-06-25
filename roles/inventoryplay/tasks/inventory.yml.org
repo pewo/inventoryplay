@@ -1,0 +1,60 @@
+---
+
+- name: create temporary directory
+  ansible.builtin.tempfile:
+    state: directory
+  register: tmpdir
+
+- debug: var=tmpdir
+
+- meta: end_play
+
+- name: check if destination directory is defined
+  assert:
+    that:
+      - directory is defined
+    fail_msg: "Add -e 'directory=<dir>' to ansible commandline"
+    quiet: true
+  run_once: true
+  delegate_to: localhost
+
+- name: check id destination directory is present
+  stat:
+    path: "{{ directory }}"
+  register: p
+  run_once: true
+  delegate_to: localhost
+
+- name: check if destination directory is a directory
+  assert:
+    that:
+      - p.stat.isdir is defined
+      - p.stat.isdir == true
+    fail_msg: "Directory {{ directory }} is missing"
+    quiet: true
+  run_once: true
+  delegate_to: localhost
+
+- name: check if variable is defined
+  assert:
+    that:
+      - variable is defined
+    fail_msg: "variable is not defined, try -e {% raw %} 'variable={{ host_variable }}' {% endraw %}"
+    quiet: true
+
+- name: remove old files
+  file: 
+    path: "{{ item }}"
+    state: absent
+  with_fileglob:
+     - "{{ directory }}/*"
+  run_once: true
+  delegate_to: localhost
+
+- name: "save data to {{ directory }}"
+  copy:
+    content: "{{ variable | trim | replace(' ', '\n') }}\n"
+    dest: "{{ directory }}/{{ inventory_hostname }}"
+  register: save
+  delegate_to: localhost
+  when: variable is defined and p.stat.isdir is defined and p.stat.isdir

@@ -1,0 +1,28 @@
+---
+
+- name: create temporary directory
+  ansible.builtin.tempfile:
+    state: directory
+  register: tmpdir
+  delegate_to: localhost
+  run_once: true
+
+- name: debug in main.yml
+  debug: var=tmpdir.path
+  delegate_to: localhost
+  run_once: true
+
+- name: include build tasks
+  include_tasks: "inventory.yml"
+
+- name: include run playbooks
+  include_tasks: "inventoryplay.yml"
+
+- name: clean up temporary directory
+  ansible.builtin.file:
+    path: "{{ tmpdir.path }}"
+    state: absent
+  when: tmpdir.path is defined
+  delegate_to: localhost
+  run_once: true
+  
