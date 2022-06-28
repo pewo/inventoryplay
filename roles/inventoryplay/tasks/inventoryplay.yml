@@ -7,10 +7,14 @@
   delegate_to: localhost
   run_once: true
 
-- debug: var=p
+- name: build inventory argument
+  set_fact: 
+    inventories: "--inventory={{ ansible_inventory_sources | join(' --inventory=') }}"
+  delegate_to: localhost
+  run_once: true
 
 - name: execute inventory.pl
-  command: "{{ p.stat.path }} --directory={{ tmpdir.path }} --inventory={{ inventory_file }}"
+  command: "{{ p.stat.path }} --directory={{ tmpdir.path }} {{ inventories }}"
   register: exec
   delegate_to: localhost
   run_once: true
@@ -18,4 +22,5 @@
         ( p.stat.isreg is defined and p.stat.isreg ) and
         ( p.stat.xusr is defined and p.stat.xusr )
 
-- debug: var=exec
+- name: display execution stdout
+  debug: var=exec.stdout

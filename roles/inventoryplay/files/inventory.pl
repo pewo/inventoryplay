@@ -5,9 +5,10 @@ use Data::Dumper;
 use File::Basename;
 use File::Temp qw/ tempdir /;
 use Getopt::Long;
+use Data::Dumper;
 
 
-my $usage = "$0 -d|--directory <directory> -i|--inventory <ansible inventory> --debug\n";
+my $usage = "$0 -d|--directory <directory> -i|--inventory <ansible inventory> ... -i|--inventory=... --debug\n";
 my $debug = 0;
 
 #
@@ -153,6 +154,7 @@ foreach $run ( sort { $a <=> $b } keys %playbook ) {
 	my($targets) = $playbook{$run}{targets};
 	my($subcmd) = "ansible-playbook $playbook";
         foreach ( @inventory ) {
+		next unless ( $_ );
 		$subcmd .= " -i $_";
 	}
 	$subcmd .= " -l " . join(",",@$targets);
