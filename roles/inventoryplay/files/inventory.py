@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-debug = 0
+debug = 1
 
 def read_all_file(dir):
 
@@ -49,6 +49,72 @@ def read_all_file(dir):
 
     return hash
 
+def get_all_playbooks(pb,hash):
+    res = []
+
+    if not pb:
+        return res
+
+    if debug: print("Searching for",pb,"in",hash)
+    for target in hash:
+        arr = hash[target]
+        if len(arr):
+            targetplay = arr[0]
+            if debug: print("target:",target,"targetplay:",targetplay)
+            if targetplay:
+                if targetplay == pb:
+                    if debug: print("found one")
+                    res.append(target)
+                    arr.pop(0)
+
+
+    return res
+
+def construct_runs(hash):
+    playbook = []
+
+    run = 0
+    found = 1
+
+    while found:
+        found = 0
+        run += 1
+
+        for target in hash:
+            if debug: print("target:",target)
+            arr = hash[target]
+            if not len(arr):
+                continue
+
+            pb = arr[0]
+
+            if not pb:
+                continue
+
+            if debug: print("pb:",pb)
+
+            arrlen = len(playbook)
+            if debug: print("len:",arrlen,"run:",run)
+            if arrlen < run:
+                play = dict()
+                play["playbook"]=pb
+                play["targets"]= get_all_playbooks(pb, hash)
+
+                playbook.append(play)
+                found = 1
+
+    return playbook
+
+
+
 if __name__ == "__main__": 
     hash = read_all_file("/tmp/bepa")
-    print("hash:", hash)
+    print("hash main:", hash)
+    run = construct_runs(hash)
+    for i in range(len(run)):
+        pb = run[i]["playbook"]
+        targets = run[i]["targets"]
+        print("pb:", pb, "targets:", targets)
+
+    #print("run main:", run)
+
