@@ -121,15 +121,15 @@ sub construct_runs(\%) {
 }
 
 my $directory   = undef;
-my $inventory   = undef;
+my @inventory   = undef;
 
 GetOptions (
 	"d|directory=s" => \$directory,
-	"i|inventory=s" => \$inventory,
+	"i|inventory=s" => \@inventory,
 	"debug"  => \$debug,
   ) or die("Error in command line arguments\n");
 
-unless ( defined($directory) and defined($inventory) )  {
+unless ( defined($directory) and $#inventory > 0 ) {
 	die $usage;
 }
 
@@ -151,9 +151,13 @@ foreach $run ( sort { $a <=> $b } keys %playbook ) {
 	print "run $run\n";
 	my($playbook) = $playbook{$run}{playbook};
 	my($targets) = $playbook{$run}{targets};
-	my($subcmd) = "ansible-playbook $playbook -i $inventory";
+	my($subcmd) = "ansible-playbook $playbook";
+        foreach ( @inventory ) {
+		$subcmd .= " -i $_";
+	}
 	$subcmd .= " -l " . join(",",@$targets);
 	print $subcmd . "\n";
-	my($rc) = system($subcmd);
+	my($rc) = 0;
+	$rc = system($subcmd) unless ( $debug );
 	print "rc: $rc  ($subcmd)\n\n\n";
 }
