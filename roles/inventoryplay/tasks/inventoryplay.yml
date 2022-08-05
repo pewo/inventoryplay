@@ -24,3 +24,5 @@
 
 - name: display execution stdout
   debug: var=exec.stdout
+  run_once: true
+  delegate_to: localhost

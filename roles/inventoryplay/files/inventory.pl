@@ -148,6 +148,7 @@ my(%hash) = read_all_files($directory);
 my(%playbook) = construct_runs(%hash);
 
 my($run);
+print "DEBUG playbook: " . Dumper(\%playbook) . "\n";
 foreach $run ( sort { $a <=> $b } keys %playbook ) {
 	print "run $run\n";
 	my($playbook) = $playbook{$run}{playbook};
