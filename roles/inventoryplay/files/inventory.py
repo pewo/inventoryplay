@@ -1,7 +1,11 @@
+#!/usr/bin/env python3
 import os
 import subprocess
+import argparse
+import pathlib
+import re
 
-debug = 1
+debug = False
 
 def read_all_file(dir):
 
@@ -106,15 +110,36 @@ def construct_runs(hash):
     return playbook
 
 
-
 if __name__ == "__main__": 
-    hash = read_all_file("/tmp/bepa")
-    print("hash main:", hash)
+    parser = argparse.ArgumentParser(description="inventoryplay")
+    parser.add_argument('--directory','-d', required=True, type=pathlib.Path, help='playbook inventory')
+    parser.add_argument('--inventory','-i', required=True, action='append', type=pathlib.Path, help='inventory')
+    parser.add_argument('--debug', action='store_true', help='enable debug')
+    args = parser.parse_args()
+    directory = args.directory
+    debug = args.debug
+    inventory = args.inventory
+
+    hash = read_all_file(directory)
     run = construct_runs(hash)
     for i in range(len(run)):
+        print("run:",i)
         pb = run[i]["playbook"]
         targets = run[i]["targets"]
-        print("pb:", pb, "targets:", targets)
+        cmd = "ansible-playbook " + pb
+        for inv in inventory:
+            cmd += " -i " + str(inv)
+
+        target=""
+        for t in targets:
+            target += "," + t
+        
+        target = re.sub(r'(^,)','',target)
+
+        cmd += " -l " + target
+        print("cmd:",cmd)
+        #if debug:
+            #print("pb:", pb, "targets:", targets)
 
     #print("run main:", run)
 
